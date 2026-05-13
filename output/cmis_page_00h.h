@@ -79,18 +79,18 @@ typedef struct __attribute__((packed)) {
             uint8_t _pad_200_0 : 5;
             uint8_t ModulePowerClass1 : 3;  /* r200.7-5 */
         };
-        uint8_t r200;
+        uint8_t ModulePowerClass;
     };
     /**
      * @brief MaxPower
-     * @details Maximum power consumption in multiples of 0.25 W rounded up to the next whole multiple of 0.25 W
+     * @details Maximum power consumption in multiples of 0.25 Wrounded up to the next whole multiple of 0.25 W
      * @access RO Rqd.
      */
     uint8_t MaxPower;  /* r201 */
         /**
          * @brief BaseLength
-         * @details Link length base value in meters. To calculate actual link length use multiplier in bits 7-6. A 
-         * valueof 0 indicates an undefined Link Length, e.g. when the physical media can be disconnected from the 
+         * @details Link length base value in meters. To calculate actual link length use multiplier in bits 7-6. 
+         * Avalueof 0 indicates an undefined Link Length, e.g. when the physical media can be disconnected from the 
          * module.
          */
         /**
@@ -137,7 +137,7 @@ typedef struct __attribute__((packed)) {
     uint8_t AttenuationAt25p8GHz;  /* r207 */
     /**
      * @brief AttenuationAt53p1GHz
-     * @details U8 cable attenuation at 53.125 GHz in 1 dB increments. A value of 0 dB indicates that this 
+     * @details U8 cable attenuation at 53.125 GHz in 1 dB increments. Avalue of 0 dB indicates that this 
      * characteristicis not available (not relevant or otherwise unknown)
      * @access RO Cnd.
      */
@@ -182,7 +182,7 @@ typedef struct __attribute__((packed)) {
             uint8_t MediaLaneUnsupportedLane7 : 1;  /* r210.6 */
             uint8_t MediaLaneUnsupportedLane8 : 1;  /* r210.7 */
         };
-        uint8_t r210;
+        uint8_t MediaLaneUnsupportedLane;
     };
         /**
          * @brief FarEndConfiguration
@@ -194,7 +194,7 @@ typedef struct __attribute__((packed)) {
             uint8_t FarEndConfiguration : 5;  /* r211.4-0 */
             uint8_t _pad_211_5 : 3;
         };
-        uint8_t r211;
+        uint8_t FarEndConfiguration_211;
     };
     /**
      * @brief MediaInterfaceTechnology
@@ -212,7 +212,7 @@ typedef struct __attribute__((packed)) {
          * @access RO Cnd.
          */
         /**
-         * @brief MciFlowControlDuration_Encoding
+         * @brief MciFlowControlDurationEncoding
          * @details Defines the method to determine the duration of the Flow Control Phase 0b: static (given as number 
          * ofbytes) 1b: speed-dependent (given as a duration)
          * @access RO Cnd.
@@ -220,7 +220,7 @@ typedef struct __attribute__((packed)) {
     union {
         struct {
             uint8_t MciFlowControlDuration : 7;  /* r213.6-0 */
-            uint8_t MciFlowControlDuration_Encoding : 1;  /* r213.7 */
+            uint8_t MciFlowControlDurationEncoding : 1;  /* r213.7 */
         };
         uint8_t r213;
     };

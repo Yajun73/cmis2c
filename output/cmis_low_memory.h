@@ -342,7 +342,7 @@ typedef struct __attribute__((packed)) {
         /**
          * @brief Aux2MonLowWarningFlag
          * @details Latched Flag for low Aux 2 monitor warning
-         * @access RO/COR A dv.
+         * @access RO/COR Adv.
          */
     union {
         struct {
@@ -388,7 +388,7 @@ typedef struct __attribute__((packed)) {
         /**
          * @brief CustomMonLowWarningFlag
          * @details Latched Flag for low Vendor Defined Monitor warning
-         * @access RO/COR A dv.
+         * @access RO/COR Adv.
          */
     union {
         struct {
@@ -464,7 +464,7 @@ typedef struct __attribute__((packed)) {
          */
         /**
          * @brief SquelchMethodSelect
-         * @details 0b: Squelching of Tx output reduces OMA 1b: Squelching of Tx output reduces P av Advertisement: 
+         * @details 0b: Squelching of Tx output reduces OMA 1b: Squelching of Tx output reduces Pav Advertisement: 
          * 00h:156.5-4Note: Method to choose depends on interface standard used. See Table 8-50 for SquelchMethodSelect 
          * capabilityadvertising.
          * @access RW Adv.
@@ -482,7 +482,7 @@ typedef struct __attribute__((packed)) {
          * @details 0b: Bank broadcast for lane-banked pages disabled 1b: Bank broadcast for lane-banked pages enabled 
          * WhenBankBroadcastEnable is set, a WRITE to a control register (i.e. to a register with RW or WO access) in 
          * anybank of a lane-banked page is executed as a bank broadcast. Recall that a banked page is lane-banked if 
-         * bankingis used to add support for additional lanes. A bank broadcast is a virtually simultaneous and atomic 
+         * bankingis used to add support for additional lanes. Abank broadcast is a virtually simultaneous and atomic 
          * WRITEof the same value to the same register and the same page, in all supported banks. The module ensures a 
          * generalizedbroadcast register readback condition (see section 5.2.4), such that a READ from any supported 
          * bankfor the same page and register always yields the value written in the broadcasted WRITE. Advertisement: 
@@ -513,7 +513,7 @@ typedef struct __attribute__((packed)) {
             uint8_t MciSpeedConfiguration : 4;  /* r27.3-0 */
             uint8_t _pad_27_4 : 4;
         };
-        uint8_t r27;
+        uint8_t MciSpeedConfiguration_27;
     };
     uint8_t reserved_28[3];  /**< r28.. */
         /**
@@ -735,7 +735,7 @@ typedef struct __attribute__((packed)) {
             uint8_t PasswordCmdResult : 4;  /* r42.3-0 */
             uint8_t _pad_42_4 : 4;
         };
-        uint8_t r42;
+        uint8_t PasswordCmdResult_42;
     };
     uint8_t reserved_43[13];  /**< r43.. */
     /**
@@ -766,7 +766,7 @@ typedef struct __attribute__((packed)) {
             uint8_t SFF8024ModuleSubtype : 4;  /* r60.3-0 */
             uint8_t _pad_60_4 : 4;
         };
-        uint8_t r60;
+        uint8_t SFF8024ModuleSubtype_60;
     };
         /**
          * @brief SFF8024FiberFaceType
@@ -779,7 +779,7 @@ typedef struct __attribute__((packed)) {
             uint8_t SFF8024FiberFaceType : 2;  /* r61.1-0 */
             uint8_t _pad_61_2 : 6;
         };
-        uint8_t r61;
+        uint8_t SFF8024FiberFaceType_61;
     };
     /**
      * @brief LowPowerRestrictions

@@ -5,5 +5,14 @@
 #include "cmis_low_memory.h"
 #include "cmis_page_00h.h"
 #include "cmis_page_01h.h"
+#include "cmis_page_02h.h"
+#include "cmis_page_04h.h"
+#include "cmis_page_10h.h"
+#include "cmis_page_11h.h"
+#include "cmis_page_12h.h"
+#include "cmis_page_13h.h"
+#include "cmis_page_14h.h"
+#include "cmis_page_2fh.h"
+#include "cmis_page_9fh.h"
 
 #endif  // __CMIS_H

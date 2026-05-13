@@ -85,7 +85,7 @@ typedef struct __attribute__((packed)) {
             uint8_t _pad_137_0 : 6;
             uint8_t LengthMultiplierSMF2 : 2;  /* r137.7-6 */
         };
-        uint8_t r137;
+        uint8_t LengthMultiplierSMF_137;
     };
     /**
      * @brief NominalWavelength
@@ -146,17 +146,17 @@ typedef struct __attribute__((packed)) {
         uint8_t r142;
     };
         /**
-         * @brief ModSelWaitTimeMantissa_m
+         * @brief ModSelWaitTimeMantissaM
          */
         /**
-         * @brief ModSelWaitTimeExponent_e
+         * @brief ModSelWaitTimeExponentE
          * @details ModSelWaitTime value represented as m∙2e in μs 00h: no data available
          * @access RO Rqd.
          */
     union {
         struct {
-            uint8_t ModSelWaitTimeMantissa_m : 5;  /* r143.4-0 */
-            uint8_t ModSelWaitTimeExponent_e : 3;  /* r143.7-5 */
+            uint8_t ModSelWaitTimeMantissaM : 5;  /* r143.4-0 */
+            uint8_t ModSelWaitTimeExponentE : 3;  /* r143.7-5 */
         };
         uint8_t r143;
     };
@@ -228,15 +228,15 @@ typedef struct __attribute__((packed)) {
     };
     /**
      * @brief ModuleTempMax
-     * @details S8 Maximum allowed module temperature in 1 deg C increments. ModuleTempMax = ModuleTempMin = 0 
-     * indicates‘not specified’.
+     * @details S8 Maximum allowed module temperature in 1 deg Cincrements. ModuleTempMax = ModuleTempMin = 0 indicates 
+     * ‘notspecified’.
      * @access RO Cnd.
      */
     uint8_t ModuleTempMax;  /* r146 */
     /**
      * @brief ModuleTempMin
-     * @details S8 Minimum allowed module temperature in 1 deg C increments. ModuleTempMax = ModuleTempMin = 0 
-     * indicates‘not specified’.
+     * @details S8 Minimum allowed module temperature in 1 deg Cincrements. ModuleTempMax = ModuleTempMin = 0 indicates 
+     * ‘notspecified’.
      * @access RO Cnd.
      */
     uint8_t ModuleTempMin;  /* r147 */
@@ -273,8 +273,8 @@ typedef struct __attribute__((packed)) {
          */
         /**
          * @brief RxLOSType
-         * @details 0b: Rx LOS responds to OMA 1b: Rx LOS responds to P av Note: LOS Type depends on interface 
-         * standardssupported
+         * @details 0b: Rx LOS responds to OMA 1b: Rx LOS responds to Pav Note: LOS Type depends on interface standards 
+         * supported
          */
         /**
          * @brief RxPowerMeasurementType
@@ -289,7 +289,7 @@ typedef struct __attribute__((packed)) {
         /**
          * @brief OpticalDetectorType
          * @details 0b: PIN detector 1b: APD detector
-         * @access RO R qd.
+         * @access RO Rqd.
          */
     union {
         struct {
@@ -305,8 +305,8 @@ typedef struct __attribute__((packed)) {
     };
     /**
      * @brief CDRPowerSavedPerLane
-     * @details U8 Minimum power consumption saved per CDR per lane when placed in CDR bypass, in multiples of 0.01 W 
-     * roundedup to the next whole multiple of 0.01 W
+     * @details U8 Minimum power consumption saved per CDR per lane when placed in CDR bypass, in multiples of 0.01 
+     * Wroundedup to the next whole multiple of 0.01 W
      * @access RO Cnd.
      */
     uint8_t CDRPowerSavedPerLane;  /* r152 */
@@ -377,7 +377,7 @@ typedef struct __attribute__((packed)) {
         /**
          * @brief SquelchMethodTx
          * @details 00b: Tx output squelching function is not supported 01b: Tx output squelching function reduces OMA 
-         * 10b:Tx output squelching function reduces P av 11b: Host controls the method for Tx output squelching, 
+         * 10b:Tx output squelching function reduces Pav 11b: Host controls the method for Tx output squelching, 
          * reducingOMA or P (see Table 8-11) av Note: Support of the Tx output squelching function implies support of 
          * automaticTx squelching control
          */
@@ -466,7 +466,7 @@ typedef struct __attribute__((packed)) {
         /**
          * @brief CDRLOLFlagRxSupported
          * @details 0b: Rx CDR Loss of Lock Flags not supported 1b: Rx CDR Loss of Lock Flags supported
-         * @access RO R qd.
+         * @access RO Rqd.
          */
     union {
         struct {
@@ -483,7 +483,7 @@ typedef struct __attribute__((packed)) {
          */
         /**
          * @brief VccMonSupported
-         * @details 0b: Internal 3.3 V monitor not supported 1b: Internal 3.3 V monitor supported
+         * @details 0b: Internal 3.3 Vmonitor not supported 1b: Internal 3.3 Vmonitor supported
          */
         /**
          * @brief Aux1MonSupported
@@ -591,7 +591,7 @@ typedef struct __attribute__((packed)) {
          * Bypasscontrol supported
          */
         /**
-         * @brief RxOutputAmplitudeControlSup_ported
+         * @brief RxOutputAmplitudeControlSupPorted
          * @details 0b: Rx Output Amplitude control not supported 1b: Rx Output Amplitude control supported
          */
         /**
@@ -620,7 +620,7 @@ typedef struct __attribute__((packed)) {
         struct {
             uint8_t RxCDRSupported : 1;  /* r162.0 */
             uint8_t RxCDRBypassControlSupported : 1;  /* r162.1 */
-            uint8_t RxOutputAmplitudeControlSup_ported : 1;  /* r162.2 */
+            uint8_t RxOutputAmplitudeControlSupPorted : 1;  /* r162.2 */
             uint8_t RxOutputEqControlSupported : 2;  /* r162.4-3 */
             uint8_t StagedSet1Supported : 1;  /* r162.5 */
             uint8_t UnidirReconfigSupported : 1;  /* r162.6 */
@@ -632,7 +632,7 @@ typedef struct __attribute__((packed)) {
          * @brief CdbMaxPagesEPL
          * @details This field encodes the EPL Page range supported or, equivalently, the maximum length of extended 
          * payload:Value Supported Total Number of EPL Pages Pages EPL Bytes 0: (none) 0 0 1: A0h 1 128 2: A0h-A1h 2 
-         * 2563 A0h-A2h 3 384 4 A0h-A3h 4 512 5 A0h-A7h 8 1024 6 A0h-Abh 12 1536 7 A0h-Afh 16 2048 Note: A host can 
+         * 2563 A0h-A2h 3 384 4 A0h-A3h 4 512 5 A0h-A7h 8 1024 6 A0h-Abh 12 1536 7 A0h-Afh 16 2048 Note: Ahost can 
          * accessall supported EPL Pages and the EPL Page range is sufficient for all supported CDB commands. The 
          * requirednumber of EPL pages may be CDB command specific.
          * @access RO Cnd.
@@ -680,7 +680,7 @@ typedef struct __attribute__((packed)) {
     uint8_t CdbReadWriteLengthExtension;  /* r164 */
         /**
          * @brief CdbExtMaxBusyTime
-         * @details When CdbMaxBusySpecMethod=1b: CdbExtMaxBusyTime = X encodes the maximum CDB busy time T CDBB 
+         * @details When CdbMaxBusySpecMethod=1b: CdbExtMaxBusyTime = Xencodes the maximum CDB busy time T CDBB 
          * asmax(1,X)*160ms in a range of 160 ms to 4960 ms. When CdbMaxBusySpecMethod=0b: don’t care
          * @access RO Cnd.
          */
@@ -704,14 +704,14 @@ typedef struct __attribute__((packed)) {
     };
         /**
          * @brief CdbMaxBusyTime
-         * @details When CdbMaxBusySpecMethod=0b: CdbMaxBusyTime=X encodes the maximum CDB busy time T as (80– CDBB 
+         * @details When CdbMaxBusySpecMethod=0b: CdbMaxBusyTime=Xencodes the maximum CDB busy time Tas (80– CDBB 
          * min(80,X))msin a range of 0 ms to 80 ms. When CdbMaxBusySpecMethod=1b: don’t care
          * @access RO Cnd.
          */
         /**
          * @brief CdbMaxBusySpecMethod
-         * @details 0b: Indicates that the maximum CDB busy time T is CDBB specified via CdbMaxBusyTime (01h:166.6-0) 
-         * 1b:Indicates that the maximum CDB busy time T is CDBB specified via CdbExtMaxBusyTime (01h:165.4-0).
+         * @details 0b: Indicates that the maximum CDB busy time Tis CDBB specified via CdbMaxBusyTime (01h:166.6-0) 
+         * 1b:Indicates that the maximum CDB busy time Tis CDBB specified via CdbExtMaxBusyTime (01h:165.4-0).
          * @access RO Cnd.
          */
     union {
@@ -764,7 +764,7 @@ typedef struct __attribute__((packed)) {
             uint8_t MaxDurationBPC : 4;  /* r169.3-0 */
             uint8_t _pad_169_4 : 4;
         };
-        uint8_t r169;
+        uint8_t MaxDurationBPC_169;
     };
     uint8_t reserved_170[5];  /**< r170.. */
         /**
@@ -777,7 +777,7 @@ typedef struct __attribute__((packed)) {
             uint8_t NADBanksSupported : 4;  /* r175.3-0 */
             uint8_t _pad_175_4 : 4;
         };
-        uint8_t r175;
+        uint8_t NADBanksSupported_175;
     };
     /** @brief Media Lane Assignment Options (App 1-15) */
     uint8_t MediaLaneAssignmentOptions[15];
@@ -856,10 +856,10 @@ typedef struct __attribute__((packed)) {
     };
     uint8_t reserved_253[2];  /**< r253.. */
     /**
-     * @brief Page_Checksum
+     * @brief PageChecksum
      * @details Page Checksum of bytes 130-2541
      */
-    uint8_t Page_Checksum;  /* r255 */
+    uint8_t PageChecksum;  /* r255 */
 
 } cmis_page_01h_t;
 
