@@ -2,7 +2,7 @@
 #include <stdint.h>
 #include <stdio.h>
 
-#include "../cmis_low_memory.h"
+#include "cmis_low_memory.h"
 
 int main(void) {
     cmis_low_memory_t regs;

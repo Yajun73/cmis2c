@@ -3,12 +3,19 @@ __pycache__/
 *.pyc
 *.pyo
 *.egg-info/
+*.o
 
 # Generated output
-# output/
-# cmis_low_memory.h
-# cmis_page_00h.h
-# cmis.h
+output/
 
 # PDF input (large binary)
 *.pdf
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db

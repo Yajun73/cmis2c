@@ -9,6 +9,8 @@ def clean_cell(x):
     # Fix PDF kerning artifacts in numeric fields: "12 8" -> "128", "3- 0" -> "3-0"
     if re.match(r'^[\d\s\-]+$', s):
         s = re.sub(r'\s+', '', s)
+    # Fix kerning in text: single uppercase letter + space + lowercase word -> join
+    s = re.sub(r'\b([A-Z])\s+([a-z])', r'\1\2', s)
     return s
 
 def parse_bits(bits_str):
@@ -61,6 +63,16 @@ def _extract_register_tables(pdf, page_range, byte_lo, byte_hi):
                     if has_byte_header:
                         for j, cell in enumerate(cells):
                             if j < len(r0): entry[r0[j]] = cell
+                        # Normalize column names
+                        for key in list(entry.keys()):
+                            kl = key.lower()
+                            if 'description' in kl and 'Field Description' not in entry and 'Register Description' not in entry:
+                                entry['Register Description'] = entry.pop(key)
+                            elif 'name' in kl and 'Field Name' not in entry and 'Register Name' not in entry:
+                                if 'field' in kl:
+                                    entry['Field Name'] = entry.pop(key)
+                                else:
+                                    entry['Register Name'] = entry.pop(key)
                         # Normalize: 'Bytes' header -> 'Byte' key
                         if 'Bytes' in entry and 'Byte' not in entry:
                             entry['Byte'] = entry.pop('Bytes')
@@ -130,7 +142,7 @@ def _extract_register_tables(pdf, page_range, byte_lo, byte_hi):
             if not t: continue
             r0 = [clean_cell(x).lower().replace('\n', ' ') for x in t[0]]
 
-            has_code = any(c in r0 for c in ['code', 'value', 'bit pattern', 'module state'])
+            has_code = any(c in r0 for c in ['code', 'value', 'bit pattern', 'module state', 'encoding'])
             has_desc = 'description' in r0 or 'name' in r0 or 'state' in r0
 
             if has_code and has_desc:
@@ -144,7 +156,8 @@ def _extract_register_tables(pdf, page_range, byte_lo, byte_hi):
                 name_idx = -1
 
                 for idx, c in enumerate(r0):
-                    if 'code' in c or 'value' in c or 'bit pattern' in c: code_idx = idx
+                    if code_idx < 0 and ('code' in c or 'bit pattern' in c or 'module state' in c or 'encoding' in c): code_idx = idx
+                    if 'value' in c and code_idx < 0: code_idx = idx
                     if 'description' in c or 'field description' in c: desc_idx = idx
                     if 'name' in c or 'state' in c and 'description' not in c: name_idx = idx
 
@@ -178,10 +191,9 @@ def _extract_register_tables(pdf, page_range, byte_lo, byte_hi):
 
                     if enum_vals:
                         if table_id:
-                            enums[f"Table {table_id}"] = {
-                                'table_id': table_id,
-                                'values': enum_vals
-                            }
+                            key = f"Table {table_id}"
+                            if key not in enums:
+                                enums[key] = {'table_id': table_id, 'values': enum_vals}
                         else:
                             enums[f"Auto_{i}_{id(t)}"] = {
                                 'table_id': None,
@@ -190,7 +202,7 @@ def _extract_register_tables(pdf, page_range, byte_lo, byte_hi):
 
     # Link enums to registers
     for reg in registers:
-        desc = reg.get('Field Description', '') or ""
+        desc = reg.get('Field Description', '') or reg.get('Register Description', '') or ""
         m = re.search(r'Table\s(\d+-\d+)', desc)
         if m:
             table_ref = f"Table {m.group(1)}"
@@ -216,3 +228,162 @@ def extract_page01h_data(pdf_path):
     """Extract Page 01h Upper Memory registers (bytes 128-255) from CMIS PDF."""
     with pdfplumber.open(pdf_path) as pdf:
         return _extract_register_tables(pdf, range(167, 184), 128, 255)
+
+
+def extract_page02h_data(pdf_path):
+    """Extract Page 02h Upper Memory registers (bytes 128-255) from CMIS PDF."""
+    with pdfplumber.open(pdf_path) as pdf:
+        return _extract_register_tables(pdf, range(184, 186), 128, 255)
+
+
+def extract_page04h_data(pdf_path):
+    """Extract Page 04h Upper Memory registers (bytes 128-255) from CMIS PDF."""
+    with pdfplumber.open(pdf_path) as pdf:
+        return _extract_register_tables(pdf, range(187, 190), 128, 255)
+
+
+def extract_page10h_data(pdf_path):
+    """Extract Banked Page 10h Upper Memory registers (bytes 128-255) from CMIS PDF."""
+    with pdfplumber.open(pdf_path) as pdf:
+        regs = _extract_register_tables(pdf, range(191, 207), 128, 255)
+    # Inject synthetic entries from overview: 240-255 Custom
+    regs.append({'Byte': '240-255', 'Bits': '7-0', 'Register Name': 'CustomInfo',
+                 'Register Description': 'Custom information', '_synthetic': True})
+    return regs
+
+
+def extract_page11h_data(pdf_path):
+    """Extract Banked Page 11h Upper Memory registers (bytes 128-255) from CMIS PDF."""
+    with pdfplumber.open(pdf_path) as pdf:
+        regs = _extract_register_tables(pdf, range(207, 219), 128, 255)
+    # Inject synthetic entries for r240-255 lane mapping arrays (fill gaps)
+    for lane in range(1, 9):
+        bt = 240 + lane - 1
+        br = 248 + lane - 1
+        for b in [bt, br]:
+            suffix = 'Tx' if b < 248 else 'Rx'
+            regs.append({'Byte': str(b), 'Bits': '3-0',
+                         'Field Name': f'MediaLaneToFiberMapping{suffix}{lane}',
+                         '_synthetic': True})
+            regs.append({'Byte': str(b), 'Bits': '7-4',
+                         'Field Name': f'MediaLaneToWavelengthMapping{suffix}{lane}',
+                         '_synthetic': True})
+    return regs
+
+
+def extract_page12h_data(pdf_path):
+    """Extract Banked Page 12h Upper Memory registers (bytes 128-255) from CMIS PDF."""
+    with pdfplumber.open(pdf_path) as pdf:
+        regs = _extract_register_tables(pdf, range(220, 222), 128, 255)
+    # Overwrite with proper synthetic entries based on overview table 8-98
+    regs = [r for r in regs if not r.get('_synthetic')]
+    # Filter out malformed entries with '<n>' notation
+    regs = [r for r in regs if '<n>' not in str(r.get('Field Name', '')) and '<n>' not in str(r.get('Name', ''))]
+
+    def add_array(start, count, width, base_name, desc, struct_fields=None):
+        """Add synthetic entries for an 8-lane array.
+        struct_fields: optional list of (name_suffix, bits, desc) for per-byte fields within a union.
+        """
+        for i in range(count):
+            b = start + i * width
+            if struct_fields:
+                for sf_name, sf_bits, sf_desc in struct_fields:
+                    regs.append({'Byte': str(b), 'Bits': sf_bits,
+                                 'Field Name': f'{sf_name}{i+1}',
+                                 'Field Description': f'{sf_desc} lane {i+1}',
+                                 'width_bytes': 1, '_synthetic': True})
+            elif width == 1:
+                regs.append({'Byte': str(b), 'Bits': '7-0',
+                             'Field Name': f'{base_name}{i+1}',
+                             'Field Description': f'{desc} lane {i+1}',
+                             'width_bytes': 1, '_synthetic': True})
+            else:
+                regs.append({'Byte': f'{b}-{b+width-1}', 'Bits': '7-0',
+                             'Field Name': f'{base_name}{i+1}',
+                             'Field Description': f'{desc} lane {i+1}',
+                             'width_bytes': width, '_synthetic': True})
+
+    # r128-135: GridSpacings[8] (1 byte each, 2 fields: GridSpacingTx 7-4, FineTuningEnableTx 0)
+    add_array(128, 8, 1, 'GridSpacing', 'Grid spacing',
+              [('GridSpacingTx', '7-4', 'Grid spacing for media lane'),
+               ('FineTuningEnableTx', '0', 'Fine-tuning enabled')])
+    # r136-151: ChannelOffsetNumbers[8] (S16 each)
+    add_array(136, 8, 2, 'ChannelOffsetNumber', 'Channel offset number')
+    # r152-167: FineTuningOffsets[8] (S16 each)
+    add_array(152, 8, 2, 'FineTuningOffset', 'Fine tuning offset')
+    # r168-199: LaserFrequencies[8] (U32 each)
+    add_array(168, 8, 4, 'LaserFrequency', 'Laser frequency')
+    # r200-215: TargetOutputPower[8] (S16 each)
+    add_array(200, 8, 2, 'TargetOutputPower', 'Target output power')
+    # r222-229: StatusIndicator array (1 byte each, 2 bit-fields + pad)
+    add_array(222, 8, 1, 'StatusIndicator', 'Status indicator',
+              [('WavelengthUnlockStatusTx', '0', 'Bool: Unlocked status indication for laser wavelength on media lane, 0b/1b: Wavelength locked/unlocked'),
+               ('TuningInProgressTx', '1', '0b/1b: Tuning not in progress/in progress')])
+    # r231-238: Flags[8] (1 byte each, 6 flag bits + pad)
+    add_array(231, 8, 1, 'Flag', 'Flag',
+              [('TuningCompleteFlagTx', '0', 'Latched Flag set after tuning has completed'),
+               ('WavelengthUnlockedFlagTx', '1', 'Latched Flag indicating an unlocked wavelength condition'),
+               ('InvalidChannelNumberFlagTx', '2', 'Latched Flag indicating an invalid channel number was selected'),
+               ('TuningNotAcceptedFlagTx', '3', 'Latched Flag indicating a failed tuning operation: module temporarily unable to serve a tuning request'),
+               ('FineTuningOutOfRangeFlagTx', '4', 'Latched Flag indicating a fine-tuning value outside the allowed range was given'),
+               ('TargetOutputPowerOORFlagTx', '5', 'Latched Flag indicating a target output power value outside the allowed range was entered')])
+    # r239-246: Masks[8] (1 byte each, 6 mask bits + pad)
+    add_array(239, 8, 1, 'Mask', 'Mask',
+              [('TuningCompleteMaskTx', '0', 'Mask for TuningCompleteFlagTx'),
+               ('WavelengthUnlockedMaskTx', '1', 'Mask for WavelengthUnlockedFlagTx'),
+               ('InvalidChannelMaskTx', '2', 'Mask for InvalidChannelNumberFlagTx'),
+               ('TuningNotAcceptedMaskTx', '3', 'Mask for TuningNotAcceptedFlagTx'),
+               ('FineTuningOutOfRangeMaskTx', '4', 'Mask for FineTuningOutOfRangeFlagTx'),
+               ('TargetOutputPowerOORMaskTx', '5', 'Mask for TargetOutputPowerOORFlagTx')])
+    # r216-221: Reserved[6]
+    regs.append({'Byte': '216-221', 'Bits': '7-0', 'Register Name': '-',
+                 'Register Description': 'Reserved[6]', '_synthetic': True})
+    # r247-255: Reserved[9]
+    regs.append({'Byte': '247-255', 'Bits': '7-0', 'Register Name': '-',
+                 'Register Description': 'Reserved[9]', '_synthetic': True})
+    return regs
+
+
+def extract_page13h_data(pdf_path):
+    """Extract Banked Page 13h Upper Memory registers (bytes 128-255) from CMIS PDF."""
+    with pdfplumber.open(pdf_path) as pdf:
+        return _extract_register_tables(pdf, range(223, 243), 128, 255)
+
+
+def extract_page14h_data(pdf_path):
+    """Extract Banked Page 14h Upper Memory registers (bytes 128-255) from CMIS PDF."""
+    with pdfplumber.open(pdf_path) as pdf:
+        regs = _extract_register_tables(pdf, range(243, 249), 128, 255)
+    # Filter out malformed entries from global-bit-position tables (Bits > 7 in multi-byte registers)
+    regs = [r for r in regs if parse_bits(r.get('Bits', '') or r.get('Bit', ''))[0] <= 7]
+    # r140-149: Reserved[10] (overwrite any parsed entries for this range)
+    regs = [r for r in regs if not (140 <= int(str(r.get('Byte','0')).split('-')[0]) <= 149 and not r.get('_synthetic'))]
+    regs.append({'Byte': '140-149', 'Bits': '7-0', 'Register Name': '-',
+                 'Register Description': 'Reserved[10]', '_synthetic': True})
+    # r130-131: Custom[2] (arrayize as 2 bytes)
+    for b in range(130, 132):
+        regs.append({'Byte': str(b), 'Bits': '7-0', 'Field Name': f'Custom{b-129}',
+                     'Field Description': f'Custom byte {b-129}', 'width_bytes': 1, '_synthetic': True})
+    return regs
+
+
+def extract_page2fh_data(pdf_path):
+    """Extract Banked Page 2Fh Upper Memory registers (bytes 128-255) from CMIS PDF."""
+    with pdfplumber.open(pdf_path) as pdf:
+        return _extract_register_tables(pdf, range(278, 281), 128, 255)
+
+
+def extract_page9fh_data(pdf_path):
+    """Extract Banked Page 9Fh Upper Memory registers (bytes 128-255) from CMIS PDF."""
+    with pdfplumber.open(pdf_path) as pdf:
+        regs = _extract_register_tables(pdf, range(282, 290), 128, 255)
+    # Keep only header registers (r128-135), add LPL array
+    regs = [r for r in regs if int(str(r.get('Byte','128')).split('-')[0]) < 136]
+    # Remove enum from RPLLength (it's a raw value, not an enumeration)
+    for r in regs:
+        if 'RPLLength' in str(r.get('Field Name', '')):
+            r.pop('enum', None)
+    # Add LPL array (r136-255 = 120 bytes)
+    regs.append({'Byte': '136-255', 'Bits': '7-0', 'Field Name': 'LPL',
+                 'Field Description': 'Local Payload (120 bytes)', 'width_bytes': 120, '_synthetic': True})
+    return regs
